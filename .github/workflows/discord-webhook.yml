@@ -1,0 +1,45 @@
+name: Send Discord Notification
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send Discord Webhook
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "embeds": [
+              {
+                "title": "ModHub",
+                "description": "A new push has been made to the ModHub repository.",
+                "url": "https://github.com/${{ github.repository }}/commit/${{ github.sha }}",
+                "color": 3447003,
+                "fields": [
+                  {
+                    "name": "Committer",
+                    "value": "${{ github.actor }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commit Message",
+                    "value": "${{ github.event.head_commit.message }}",
+                    "inline": true
+                  }
+                ],
+                "footer": {
+                  "text": "ModHub Webhook",
+                  "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                }
+              }
+            ]
+          }' $DISCORD_WEBHOOK_URL
